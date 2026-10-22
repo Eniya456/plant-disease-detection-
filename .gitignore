@@ -41,6 +41,7 @@ static/uploads/*
 .env
 *.json
 !package*.json
+!vercel.json
 credentials.json
 firebase_key.json
 
