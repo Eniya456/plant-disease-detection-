@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — PlantCare AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Header Row -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h2 class="fw-bold mb-1">Dashboard</h2>
+            <p class="text-muted mb-0">Overview of crop pathology scans, health ratios, and classification distribution.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('detect') }}" class="btn btn-primary-green d-flex align-items-center gap-2">
+                <i class="bi bi-camera-fill"></i>
+                <span>Scan New Leaf</span>
+            </a>
+            <a href="{{ url_for('history') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+                <i class="bi bi-clock-history"></i>
+                <span>Full History</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <!-- Total Scans -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card card-stat">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Total Scans</div>
+                        <div class="h2 fw-bold text-dark mt-1 mb-0">{{ stats.total_predictions }}</div>
+                        <small class="text-success"><i class="bi bi-check-all"></i> Total samples evaluated</small>
+                    </div>
+                    <div class="stat-icon bg-success-subtle-custom text-success">
+                        <i class="bi bi-collection-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Healthy Leaves -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card card-stat">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Healthy Leaves</div>
+                        <div class="h2 fw-bold text-success mt-1 mb-0">{{ stats.healthy_count }}</div>
+                        <small class="text-muted">
+                            {% if stats.total_predictions > 0 %}
+                                {{ ((stats.healthy_count / stats.total_predictions) * 100)|round(1) }}% of total
+                            {% else %}
+                                0% of total
+                            {% endif %}
+                        </small>
+                    </div>
+                    <div class="stat-icon bg-success-subtle text-success">
+                        <i class="bi bi-heart-pulse-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diseased Leaves -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card card-stat">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Diseased Leaves</div>
+                        <div class="h2 fw-bold text-danger mt-1 mb-0">{{ stats.diseased_count }}</div>
+                        <small class="text-muted">
+                            {% if stats.total_predictions > 0 %}
+                                {{ ((stats.diseased_count / stats.total_predictions) * 100)|round(1) }}% of total
+                            {% else %}
+                                0% of total
+                            {% endif %}
+                        </small>
+                    </div>
+                    <div class="stat-icon bg-danger-subtle text-danger">
+                        <i class="bi bi-bug-fill"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Confidence -->
+        <div class="col-sm-6 col-xl-3">
+            <div class="card card-stat">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small fw-semibold text-uppercase">Avg. Confidence</div>
+                        <div class="h2 fw-bold text-primary mt-1 mb-0">{{ stats.avg_confidence }}%</div>
+                        <small class="text-muted"><i class="bi bi-shield-check"></i> Model certainty index</small>
+                    </div>
+                    <div class="stat-icon bg-primary-subtle text-primary">
+                        <i class="bi bi-graph-up"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Quick Scan Row -->
+    <div class="row g-4 mb-4">
+        <!-- Category Distribution Chart -->
+        <div class="col-lg-8">
+            <div class="card card-custom p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Pathology Distribution</h5>
+                    <span class="badge bg-light text-dark border">Tomato Foliar Classes</span>
+                </div>
+                
+                {% if stats.total_predictions > 0 %}
+                <div style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="text-muted mb-3"><i class="bi bi-bar-chart fs-1"></i></div>
+                    <h6 class="text-muted">No classification records yet</h6>
+                    <p class="small text-muted">Upload a leaf specimen to visualize disease frequencies.</p>
+                    <a href="{{ url_for('detect') }}" class="btn btn-outline-green btn-sm">Start First Scan</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Donut / Health Breakdown -->
+        <div class="col-lg-4">
+            <div class="card card-custom p-4 h-100">
+                <h5 class="fw-bold mb-3">Health Status Ratio</h5>
+                {% if stats.total_predictions > 0 %}
+                <div style="position: relative; height: 220px; width: 100%;">
+                    <canvas id="healthRatioChart"></canvas>
+                </div>
+                <div class="d-flex justify-content-around mt-3 text-center">
+                    <div>
+                        <span class="badge bg-success-subtle text-success mb-1">Healthy</span>
+                        <div class="fw-bold">{{ stats.healthy_count }}</div>
+                    </div>
+                    <div>
+                        <span class="badge bg-danger-subtle text-danger mb-1">Diseased</span>
+                        <div class="fw-bold">{{ stats.diseased_count }}</div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="text-muted mb-3"><i class="bi bi-pie-chart fs-1"></i></div>
+                    <p class="small text-muted">Charts will activate upon first diagnostic scan.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Predictions Table -->
+    <div class="card card-custom p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <h5 class="fw-bold mb-0">Recent Diagnostic Scans</h5>
+                <small class="text-muted">Latest plant leaves processed by the model</small>
+            </div>
+            <a href="{{ url_for('history') }}" class="btn btn-sm btn-outline-green">
+                View All Scans <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        {% if recent_predictions %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Specimen</th>
+                        <th scope="col">Diagnosis</th>
+                        <th scope="col">Confidence</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Timestamp</th>
+                        <th scope="col" class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in recent_predictions %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="{{ url_for('uploaded_file', filename=p.filename) }}" alt="Specimen" class="rounded-2 border" style="width: 44px; height: 44px; object-fit: cover;" onerror="this.src='{{ url_for('static', filename='img/samples/healthy_leaf.jpg') }}'">
+                                <span class="small text-muted font-monospace text-truncate" style="max-width: 120px;">{{ p.filename }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <strong class="text-dark">{{ p.predicted_class }}</strong>
+                            {% if p.is_demo %}
+                            <span class="badge bg-light text-muted border ms-1" style="font-size:0.65rem;">DEMO</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2" style="max-width: 130px;">
+                                <div class="progress flex-grow-1" style="height: 6px;">
+                                    <div class="progress-bar {% if p.confidence > 0.85 %}bg-success{% elif p.confidence > 0.65 %}bg-warning{% else %}bg-danger{% endif %}" style="width: {{ (p.confidence * 100)|round }}%;"></div>
+                                </div>
+                                <span class="small fw-semibold">{{ (p.confidence * 100)|round(1) }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if p.is_healthy %}
+                            <span class="badge badge-healthy"><i class="bi bi-check-circle me-1"></i>Healthy</span>
+                            {% else %}
+                            <span class="badge badge-diseased"><i class="bi bi-exclamation-triangle me-1"></i>Diseased</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ p.created_at }}</td>
+                        <td class="text-end">
+                            <a href="{{ url_for('detect', view_id=p.id) }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-eye"></i> Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 bg-light rounded-3">
+            <i class="bi bi-flower2 text-success display-4 mb-3 d-block"></i>
+            <h5 class="fw-bold">No Diagnoses Performed Yet</h5>
+            <p class="text-muted small mb-3">Begin by uploading a leaf image to generate your first real-time botanical classification.</p>
+            <a href="{{ url_for('detect') }}" class="btn btn-primary-green px-4">
+                <i class="bi bi-plus-circle me-1"></i> Perform First Leaf Scan
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+{% if stats.total_predictions > 0 %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Category Bar Chart
+    const categoryData = {{ stats.category_counts | tojson }};
+    const catLabels = categoryData.map(item => item.predicted_class);
+    const catCounts = categoryData.map(item => item.count);
+
+    const ctxCat = document.getElementById('categoryChart');
+    if (ctxCat) {
+        new Chart(ctxCat, {
+            type: 'bar',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    label: 'Number of Scans',
+                    data: catCounts,
+                    backgroundColor: [
+                        '#2e7d32', '#f9a825', '#d32f2f', '#0288d1', '#7b1fa2'
+                    ],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        });
+    }
+
+    // 2. Health Ratio Donut Chart
+    const ctxHealth = document.getElementById('healthRatioChart');
+    if (ctxHealth) {
+        new Chart(ctxHealth, {
+            type: 'doughnut',
+            data: {
+                labels: ['Healthy', 'Diseased'],
+                datasets: [{
+                    data: [{{ stats.healthy_count }}, {{ stats.diseased_count }}],
+                    backgroundColor: ['#2e7d32', '#d32f2f'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                },
+                cutout: '65%'
+            }
+        });
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

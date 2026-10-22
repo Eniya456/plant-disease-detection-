@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ error_title or 'Error' }} — PlantCare AI{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-5">
+            <div class="card card-custom p-5">
+                <div class="rounded-circle bg-danger-subtle text-danger d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 70px; height: 70px;">
+                    <i class="bi bi-exclamation-triangle fs-1"></i>
+                </div>
+                <h3 class="fw-bold text-dark mb-2">{{ error_title or "Unexpected Error" }}</h3>
+                <p class="text-muted small mb-4">{{ error_message or "An error occurred while processing your request." }}</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <a href="{{ url_for('dashboard') if session.get('user_id') else url_for('index') }}" class="btn btn-primary-green">
+                        <i class="bi bi-house-door me-1"></i> Return Home
+                    </a>
+                    <a href="javascript:history.back()" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i> Go Back
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

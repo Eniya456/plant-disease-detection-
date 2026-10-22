@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% block title %}PlantCare AI — Tomato Leaf Disease Classification & Agronomic Advisory{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center gy-4">
+            <div class="col-lg-7">
+                <div class="hero-pill">
+                    <i class="bi bi-cpu-fill text-warning"></i>
+                    <span>B.Tech CSE Capstone Project &bull; AI in Smart Agriculture</span>
+                </div>
+                <h1 class="display-4 fw-extrabold text-white mb-3">
+                    Intelligent Plant Leaf <br>
+                    <span style="color: #a5d6a7;">Disease Detection</span> System
+                </h1>
+                <p class="lead text-white-50 mb-4" style="max-width: 620px;">
+                    Empowering precision agriculture through deep learning and cloud computing. Rapidly detect and classify tomato foliar pathogens with instant symptoms analysis and agronomic treatment protocols.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    {% if session.get('user_id') %}
+                    <a href="{{ url_for('detect') }}" class="btn btn-light btn-lg px-4 text-success fw-bold shadow">
+                        <i class="bi bi-camera me-1"></i> Launch Disease Scanner
+                    </a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-lg px-4 fw-semibold">
+                        <i class="bi bi-speedometer2 me-1"></i> Open Dashboard
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-light btn-lg px-4 text-success fw-bold shadow">
+                        <i class="bi bi-play-circle-fill me-1"></i> Try Live Demo
+                    </a>
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg px-4 fw-semibold">
+                        <i class="bi bi-person-plus me-1"></i> Create Free Account
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Live Metrics Bar -->
+                <div class="row mt-5 pt-3 border-top border-light border-opacity-25 text-white">
+                    <div class="col-4 col-sm-3">
+                        <div class="h3 fw-bold mb-0 text-white">5</div>
+                        <div class="small text-white-50">Pathology Classes</div>
+                    </div>
+                    <div class="col-4 col-sm-3">
+                        <div class="h3 fw-bold mb-0 text-white">98.2%</div>
+                        <div class="small text-white-50">Benchmark Acc.</div>
+                    </div>
+                    <div class="col-4 col-sm-3">
+                        <div class="h3 fw-bold mb-0 text-white">&lt;0.4s</div>
+                        <div class="small text-white-50">Inference Latency</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5 text-center">
+                <div class="card bg-white p-3 shadow-lg rounded-4 text-dark position-relative mx-auto" style="max-width: 420px;">
+                    <div class="badge bg-success-subtle text-success position-absolute top-0 start-50 translate-middle px-3 py-2 rounded-pill shadow-sm">
+                        <i class="bi bi-check2-circle me-1"></i> Live Classifier Pipeline
+                    </div>
+                    <img src="{{ url_for('static', filename='img/samples/early_blight_leaf.jpg') }}" alt="Leaf Sample" class="rounded-3 img-fluid mb-3 mt-2 shadow-sm" style="max-height: 240px; width: 100%; object-fit: cover;">
+                    <div class="d-flex justify-content-between align-items-center px-2 mb-2">
+                        <div class="text-start">
+                            <h6 class="mb-0 fw-bold">Tomato: Early Blight</h6>
+                            <small class="text-muted">Alternaria solani &bull; Fungal</small>
+                        </div>
+                        <span class="badge bg-warning text-dark px-2 py-1">94.8% Conf</span>
+                    </div>
+                    <div class="progress mb-2" style="height: 6px;">
+                        <div class="progress-bar bg-warning" style="width: 94.8%;"></div>
+                    </div>
+                    <div class="alert alert-light border small text-start mb-0 py-2">
+                        <i class="bi bi-info-circle text-success me-1"></i>
+                        Target spot concentric rings identified on lower leaf blade.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-white">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-success-subtle-custom px-3 py-2 rounded-pill fw-semibold mb-2">Machine Learning Pipeline</span>
+            <h2 class="fw-bold">How Image Classification Works</h2>
+            <p class="text-muted mx-auto" style="max-width: 650px;">
+                PlantCare AI follows a multi-stage convolutional neural network pipeline optimized for agricultural field conditions.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 card-custom border-0 p-4 text-center">
+                    <div class="feature-icon-box mx-auto">
+                        <i class="bi bi-camera"></i>
+                    </div>
+                    <h5 class="fw-bold">1. Image Acquisition</h5>
+                    <p class="text-muted small">
+                        The grower captures or uploads a leaf photo via web camera or smartphone in JPG, JPEG, or PNG format.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 card-custom border-0 p-4 text-center">
+                    <div class="feature-icon-box mx-auto">
+                        <i class="bi bi-aspect-ratio"></i>
+                    </div>
+                    <h5 class="fw-bold">2. Preprocessing</h5>
+                    <p class="text-muted small">
+                        Images are resized to 224&times;224, pixel values are normalized to the [-1, 1] range, and color channels are standardized.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 card-custom border-0 p-4 text-center">
+                    <div class="feature-icon-box mx-auto">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <h5 class="fw-bold">3. CNN Inference</h5>
+                    <p class="text-muted small">
+                        MobileNetV2 inverted residual blocks extract spatial feature maps, passing through dense layers and Softmax activation.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 card-custom border-0 p-4 text-center">
+                    <div class="feature-icon-box mx-auto">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5 class="fw-bold">4. Advisory &amp; Action</h5>
+                    <p class="text-muted small">
+                        Pathogen classification is mapped to structured symptoms, chemical treatments, and organic prevention guidelines.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Supported Categories Section -->
+<section class="py-5" style="background-color: #f3f7f4;">
+    <div class="container py-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
+            <div>
+                <span class="badge bg-success text-white px-3 py-1 rounded-pill mb-2">Targeted Pathology</span>
+                <h2 class="fw-bold mb-1">Supported Tomato Leaf Categories</h2>
+                <p class="text-muted mb-0">High-impact foliar conditions affecting solanaceous crops.</p>
+            </div>
+            <a href="{{ url_for('disease_info') }}" class="btn btn-outline-green btn-sm">
+                View Plant Disease Guide <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="card card-custom h-100 p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="{{ url_for('static', filename='img/samples/healthy_leaf.jpg') }}" alt="Healthy" class="rounded-3" style="width:64px; height:64px; object-fit: cover;">
+                        <div>
+                            <span class="badge bg-success mb-1">Healthy Foliage</span>
+                            <h6 class="fw-bold mb-0">Normal Tomato Leaf</h6>
+                            <small class="text-muted">Unimpaired chlorophyll &amp; tissue</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card card-custom h-100 p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="{{ url_for('static', filename='img/samples/early_blight_leaf.jpg') }}" alt="Early Blight" class="rounded-3" style="width:64px; height:64px; object-fit: cover;">
+                        <div>
+                            <span class="badge bg-warning text-dark mb-1">Fungal &bull; Alternaria</span>
+                            <h6 class="fw-bold mb-0">Early Blight</h6>
+                            <small class="text-muted">Concentric brown target rings</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card card-custom h-100 p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="{{ url_for('static', filename='img/samples/late_blight_leaf.jpg') }}" alt="Late Blight" class="rounded-3" style="width:64px; height:64px; object-fit: cover;">
+                        <div>
+                            <span class="badge bg-danger mb-1">Oomycete &bull; Critical</span>
+                            <h6 class="fw-bold mb-0">Late Blight</h6>
+                            <small class="text-muted">Water-soaked necrotic lesions</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card card-custom h-100 p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="{{ url_for('static', filename='img/samples/leaf_mold_leaf.jpg') }}" alt="Leaf Mold" class="rounded-3" style="width:64px; height:64px; object-fit: cover;">
+                        <div>
+                            <span class="badge bg-info text-dark mb-1">Fungal &bull; Greenhouse</span>
+                            <h6 class="fw-bold mb-0">Leaf Mold (Passalora fulva)</h6>
+                            <small class="text-muted">Olive green velvet mold under high humidity</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card card-custom h-100 p-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="{{ url_for('static', filename='img/samples/septoria_leaf.jpg') }}" alt="Septoria" class="rounded-3" style="width:64px; height:64px; object-fit: cover;">
+                        <div>
+                            <span class="badge bg-secondary mb-1">Fungal &bull; Speckled</span>
+                            <h6 class="fw-bold mb-0">Septoria Leaf Spot</h6>
+                            <small class="text-muted">Tiny circular grey-centered spots with pycnidia</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Banner -->
+<section class="py-5 bg-white text-center">
+    <div class="container py-3">
+        <div class="p-5 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);">
+            <h3 class="fw-bold text-success-custom mb-3">Ready to Analyze Crop Foliage?</h3>
+            <p class="text-dark lead mb-4" style="max-width: 600px; margin: 0 auto;">
+                Experience fast, intelligent leaf diagnostics with our pre-configured demo account or instant registration.
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="{{ url_for('login') }}" class="btn btn-primary-green btn-lg px-4">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Access System
+                </a>
+                <a href="{{ url_for('about') }}" class="btn btn-outline-dark btn-lg px-4">
+                    <i class="bi bi-file-earmark-code me-1"></i> Project Documentation
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

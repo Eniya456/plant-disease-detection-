@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ disease.name }} — Plant Disease Guide — PlantCare AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+    <!-- ── Breadcrumb ─────────────────────────────────────────── -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-success text-decoration-none">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('disease_info') }}" class="text-success text-decoration-none">Plant Disease Guide</a></li>
+            <li class="breadcrumb-item active">{{ disease.name }}</li>
+        </ol>
+    </nav>
+
+    <!-- ── Disease Header ────────────────────────────────────── -->
+    <div class="card card-custom p-4 mb-4 border-top border-4 border-{{ disease.badge_color }}">
+        <div class="row align-items-center">
+            <div class="col-md-9">
+                <div class="d-flex flex-wrap gap-2 mb-2">
+                    <!-- Category type badge -->
+                    <span class="badge bg-{{ disease.badge_color }} fs-6">
+                        {% if disease.is_healthy %}
+                            <i class="bi bi-patch-check me-1"></i>Healthy Foliage
+                        {% else %}
+                            {{ disease.get('category_label', disease.category.title()) }}
+                        {% endif %}
+                    </span>
+
+                    <!-- ML support banner -->
+                    {% if disease.ml_supported %}
+                    <span class="badge bg-success fs-6">
+                        <i class="bi bi-cpu me-1"></i> ML Model Supported
+                    </span>
+                    {% else %}
+                    <span class="badge bg-secondary fs-6">
+                        <i class="bi bi-book me-1"></i> Knowledge Base Only — Not Yet ML-Supported
+                    </span>
+                    {% endif %}
+
+                    <span class="badge bg-light text-dark border fs-6">
+                        Severity: <strong>{{ disease.severity }}</strong>
+                    </span>
+                </div>
+
+                <h2 class="fw-bold mb-1">{{ disease.name }}</h2>
+                <p class="text-muted fst-italic mb-0">
+                    <i class="bi bi-bug me-1"></i> {{ disease.scientific_name }}
+                </p>
+            </div>
+
+            <div class="col-md-3 text-md-end mt-3 mt-md-0">
+                <a href="{{ url_for('disease_info') }}" class="btn btn-outline-secondary btn-sm me-2">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Plant Disease Guide
+                </a>
+                {% if disease.ml_supported %}
+                <a href="{{ url_for('detect') }}" class="btn btn-success btn-sm">
+                    <i class="bi bi-camera me-1"></i> Detect Now
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ── ML Support Banner (detailed) ─────────────────────── -->
+    {% if not disease.ml_supported %}
+    <div class="alert alert-secondary d-flex gap-3 align-items-start mb-4 border">
+        <i class="bi bi-info-circle-fill text-secondary fs-4 flex-shrink-0 mt-1"></i>
+        <div>
+            <strong>Knowledge Base Only Category</strong><br>
+            <span class="small">
+                <em>{{ disease.name }}</em> is fully documented in the PlantCare AI Plant Disease Guide
+                but is <strong>not currently recognized</strong> by the AI classification model.
+                The model supports 5 tomato leaf classes: Healthy, Early Blight, Late Blight, Leaf Mold, and Septoria Leaf Spot.
+                This category may be added when a compatible trained model becomes available.
+                The information below is for educational and reference purposes only.
+            </span>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-success d-flex gap-3 align-items-start mb-4 border border-success">
+        <i class="bi bi-cpu-fill text-success fs-4 flex-shrink-0 mt-1"></i>
+        <div>
+            <strong>AI Model Supported</strong><br>
+            <span class="small">
+                The PlantCare AI model can detect <em>{{ disease.name }}</em> from leaf photographs.
+                <a href="{{ url_for('detect') }}" class="text-success fw-bold">Upload a leaf image →</a>
+                to get an AI-powered diagnosis.
+            </span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ── Overview Description ──────────────────────────────── -->
+    <div class="card card-custom p-4 mb-4">
+        <h5 class="fw-bold mb-2">
+            <i class="bi bi-file-text text-success me-2"></i>Overview
+        </h5>
+        <p class="text-muted mb-0">{{ disease.description }}</p>
+    </div>
+
+    <!-- ── Detail Tabs ───────────────────────────────────────── -->
+    <div class="card card-custom mb-4">
+        <div class="card-body p-0">
+            <ul class="nav nav-tabs px-3 pt-3" id="detailTabs" role="tablist">
+                <li class="nav-item">
+                    <button class="nav-link active fw-semibold" id="tab-symptoms" data-bs-toggle="tab"
+                            data-bs-target="#pane-symptoms" type="button" role="tab">
+                        <i class="bi bi-eye me-1"></i> Symptoms
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" id="tab-conditions" data-bs-toggle="tab"
+                            data-bs-target="#pane-conditions" type="button" role="tab">
+                        <i class="bi bi-cloud-rain me-1"></i> Conditions
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" id="tab-prevention" data-bs-toggle="tab"
+                            data-bs-target="#pane-prevention" type="button" role="tab">
+                        <i class="bi bi-shield-check me-1"></i> Prevention
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" id="tab-management" data-bs-toggle="tab"
+                            data-bs-target="#pane-management" type="button" role="tab">
+                        <i class="bi bi-bandaid me-1"></i> Management
+                    </button>
+                </li>
+                {% if disease.look_alikes %}
+                <li class="nav-item">
+                    <button class="nav-link fw-semibold" id="tab-lookalikes" data-bs-toggle="tab"
+                            data-bs-target="#pane-lookalikes" type="button" role="tab">
+                        <i class="bi bi-exclamation-triangle me-1"></i> Look-Alikes
+                    </button>
+                </li>
+                {% endif %}
+            </ul>
+
+            <div class="tab-content p-4" id="detailTabsContent">
+
+                <!-- Symptoms -->
+                <div class="tab-pane fade show active" id="pane-symptoms" role="tabpanel">
+                    <h6 class="fw-bold text-dark mb-3">Diagnostic Hallmarks &amp; Symptoms</h6>
+                    {% if disease.symptoms %}
+                        {% if disease.symptoms is string %}
+                        <p class="text-muted mb-0 lh-base">{{ disease.symptoms }}</p>
+                        {% else %}
+                        <ul class="text-muted mb-0">
+                            {% for s in disease.symptoms %}
+                            <li class="mb-2">{{ s }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    {% else %}
+                    <p class="text-muted mb-0">No specific symptoms documented.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Favorable Conditions -->
+                <div class="tab-pane fade" id="pane-conditions" role="tabpanel">
+                    <h6 class="fw-bold text-dark mb-3">Favorable Environmental Conditions</h6>
+                    {% if disease.favorable_conditions %}
+                        {% if disease.favorable_conditions is string %}
+                        <p class="text-muted mb-0 lh-base">{{ disease.favorable_conditions }}</p>
+                        {% else %}
+                        <ul class="text-muted mb-0">
+                            {% for fc in disease.favorable_conditions %}
+                            <li class="mb-2">{{ fc }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    {% elif disease.causes %}
+                        <p class="text-muted mb-0 lh-base">{{ disease.causes }}</p>
+                    {% else %}
+                        <p class="text-muted mb-0">No condition information documented.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Prevention -->
+                <div class="tab-pane fade" id="pane-prevention" role="tabpanel">
+                    <h6 class="fw-bold text-dark mb-3">Preventative Cultural Practices</h6>
+                    {% if disease.prevention %}
+                        {% if disease.prevention is string %}
+                        <p class="text-muted mb-0 lh-base">{{ disease.prevention }}</p>
+                        {% else %}
+                        <ul class="text-muted mb-0">
+                            {% for p in disease.prevention %}
+                            <li class="mb-2">{{ p }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    {% else %}
+                    <p class="text-muted mb-0">No prevention information documented.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Management & Treatment -->
+                <div class="tab-pane fade" id="pane-management" role="tabpanel">
+                    <h6 class="fw-bold text-dark mb-3">General Management &amp; Treatment Guidance</h6>
+                    {% set mgmt = disease.management if disease.management else disease.treatments %}
+                    {% if mgmt %}
+                        {% if mgmt is string %}
+                        <p class="text-muted mb-0 lh-base">{{ mgmt }}</p>
+                        {% else %}
+                        <ul class="text-muted mb-0">
+                            {% for t in mgmt %}
+                            <li class="mb-2">{{ t }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    {% else %}
+                    <p class="text-muted mb-0">No management information documented.</p>
+                    {% endif %}
+                </div>
+
+                <!-- Look-Alikes -->
+                {% if disease.look_alikes %}
+                <div class="tab-pane fade" id="pane-lookalikes" role="tabpanel">
+                    <h6 class="fw-bold text-dark mb-3">
+                        <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                        Conditions That May Resemble This Category
+                    </h6>
+                    {% if disease.look_alikes is string %}
+                    <p class="text-muted mb-0">{{ disease.look_alikes }}</p>
+                    {% else %}
+                    <ul class="text-muted mb-0">
+                        {% for la in disease.look_alikes %}
+                        <li class="mb-2">{{ la }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Action Row ─────────────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+            <a href="{{ url_for('disease_info') }}" class="btn btn-outline-secondary w-100">
+                <i class="bi bi-arrow-left me-1"></i> Back to Plant Disease Guide
+            </a>
+        </div>
+        <div class="col-sm-6">
+            {% if disease.ml_supported %}
+            <a href="{{ url_for('detect') }}" class="btn btn-success w-100 fw-semibold">
+                <i class="bi bi-camera me-1"></i> Detect This Disease
+            </a>
+            {% else %}
+            <button class="btn btn-secondary w-100 fw-semibold" disabled title="Not yet supported by the ML model">
+                <i class="bi bi-cpu me-1"></i> ML Detection Not Available
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ── Disclaimer ─────────────────────────────────────────── -->
+    <div class="p-4 rounded-4 bg-light border text-center">
+        <i class="bi bi-shield-exclamation text-success fs-4 mb-2 d-inline-block"></i>
+        <h6 class="fw-bold">Educational &amp; Research Purpose Only</h6>
+        <p class="text-muted small mx-auto mb-0" style="max-width: 720px;">
+            Information in this profile is derived from peer-reviewed agricultural extension literature and is intended
+            for educational purposes. It does not constitute a professional agronomic diagnosis.
+            Consult a certified plant pathologist or local extension officer before taking management action.
+        </p>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Plant Disease Guide — PlantCare AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+    <!-- ── Header ─────────────────────────────────────────────── -->
+    <div class="text-center mb-4">
+        <span class="badge bg-success-subtle-custom px-3 py-2 rounded-pill fw-semibold mb-2">
+            <i class="bi bi-journal-medical me-1"></i> Plant Health Library
+        </span>
+        <h2 class="fw-bold mb-1">Plant Disease Guide</h2>
+        <p class="text-muted mx-auto mb-3" style="max-width: 680px;">
+            Explore plant diseases, recognize common symptoms, and discover prevention and management practices.
+        </p>
+        <!-- Stats pills -->
+        <div class="d-flex flex-wrap justify-content-center gap-2">
+            <span class="badge rounded-pill bg-light text-dark border px-3 py-2 fs-6">
+                <i class="bi bi-collection me-1"></i> <strong>{{ total_count }}</strong> Total Categories
+            </span>
+            <span class="badge rounded-pill bg-success px-3 py-2 fs-6">
+                <i class="bi bi-cpu me-1"></i> <strong>{{ ml_supported_count }}</strong> ML-Supported
+            </span>
+            <span class="badge rounded-pill bg-secondary px-3 py-2 fs-6">
+                <i class="bi bi-book me-1"></i> <strong>{{ reference_only_count }}</strong> Knowledge Base Only
+            </span>
+        </div>
+    </div>
+
+    <!-- ── Search & Filter Bar ───────────────────────────────── -->
+    <div class="card card-custom p-3 mb-4">
+        <form method="GET" action="{{ url_for('disease_info') }}" id="encyclopediaFilterForm">
+            <div class="row g-3 align-items-end">
+                <!-- Search input -->
+                <div class="col-md-5">
+                    <label class="form-label small fw-semibold text-muted mb-1">
+                        <i class="bi bi-search me-1"></i> Search Diseases
+                    </label>
+                    <div class="input-group">
+                        <input type="text" name="q" id="searchInput" class="form-control"
+                               placeholder="Search by name, symptom, or organism…"
+                               value="{{ search_query }}" autocomplete="off">
+                        {% if search_query %}
+                        <a href="{{ url_for('disease_info', filter=active_filter) }}"
+                           class="btn btn-outline-secondary" title="Clear search">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Category filter pills -->
+                <div class="col-md-7">
+                    <label class="form-label small fw-semibold text-muted mb-1">
+                        <i class="bi bi-funnel me-1"></i> Filter by Category
+                    </label>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for group_key, group_label in groups %}
+                        <a href="{{ url_for('disease_info', filter=group_key, q=search_query) }}"
+                           class="btn btn-sm {% if active_filter == group_key %}btn-success{% else %}btn-outline-secondary{% endif %} rounded-pill">
+                            {{ group_label }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- ── Results count ─────────────────────────────────────── -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="text-muted small mb-0">
+            Showing <strong>{{ categories|length }}</strong> categor{{ 'y' if categories|length == 1 else 'ies' }}
+            {% if search_query %} for "<strong>{{ search_query }}</strong>"{% endif %}
+            {% if active_filter != 'all' %} — <em>{{ active_filter.replace('_', ' ').title() }}</em>{% endif %}
+        </p>
+        {% if search_query or active_filter != 'all' %}
+        <a href="{{ url_for('disease_info') }}" class="btn btn-sm btn-outline-secondary rounded-pill">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- ── Disease Cards Grid ─────────────────────────────────── -->
+    {% if categories %}
+    <div class="row g-4" id="diseaseGrid">
+        {% for info in categories %}
+        <div class="col-lg-6 col-xl-4">
+            <div class="card card-custom h-100 p-4 border-top border-4 border-{{ info.badge_color }}">
+
+                <!-- Card header row -->
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="flex-grow-1 me-2">
+                        <!-- Category type badge -->
+                        <span class="badge bg-{{ info.badge_color }} mb-1">
+                            {% if info.is_healthy %}
+                                <i class="bi bi-patch-check me-1"></i>Healthy Foliage
+                            {% else %}
+                                {{ info.get('category_label', info.category.title()) }}
+                            {% endif %}
+                        </span>
+
+                        <!-- ML support badge -->
+                        {% if info.id in ml_supported_ids %}
+                        <span class="badge bg-success ms-1 mb-1">
+                            <i class="bi bi-cpu me-1"></i>ML Supported
+                        </span>
+                        {% else %}
+                        <span class="badge bg-secondary ms-1 mb-1">
+                            <i class="bi bi-book me-1"></i>Knowledge Base
+                        </span>
+                        {% endif %}
+
+                        <h5 class="fw-bold mb-0 mt-1 text-dark">{{ info.name }}</h5>
+                        <small class="text-muted fst-italic">{{ info.scientific_name }}</small>
+                    </div>
+                    <span class="badge bg-light text-dark border text-nowrap mt-1">
+                        {{ info.severity }}
+                    </span>
+                </div>
+
+                <!-- Description -->
+                <p class="text-muted small mb-3">{{ info.description[:180] }}{% if info.description|length > 180 %}…{% endif %}</p>
+
+                <!-- Key symptoms (top 3) -->
+                <div class="mb-3">
+                    <h6 class="fw-bold small text-dark mb-1">
+                        <i class="bi bi-search text-success me-1"></i> Key Symptoms:
+                    </h6>
+                    <ul class="small text-muted ps-3 mb-0">
+                        {% for s in info.symptoms[:3] %}
+                        <li class="mb-1">{{ s }}</li>
+                        {% endfor %}
+                        {% if info.symptoms|length > 3 %}
+                        <li class="text-muted fst-italic">+{{ info.symptoms|length - 3 }} more…</li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <!-- View Details button -->
+                <div class="mt-auto pt-2">
+                    <a href="{{ url_for('disease_detail', disease_id=info.id) }}"
+                       class="btn btn-sm btn-outline-{{ info.badge_color }} w-100 fw-semibold">
+                        <i class="bi bi-arrow-right-circle me-1"></i> View Full Profile
+                    </a>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty state -->
+    <div class="card card-custom p-5 text-center">
+        <i class="bi bi-search display-4 text-muted mb-3"></i>
+        <h5 class="fw-bold">No categories found</h5>
+        <p class="text-muted mb-3">
+            No disease categories match
+            {% if search_query %}"<strong>{{ search_query }}</strong>"{% endif %}
+            {% if active_filter != 'all' %} in the <em>{{ active_filter.replace('_',' ').title() }}</em> group{% endif %}.
+        </p>
+        <a href="{{ url_for('disease_info') }}" class="btn btn-success mx-auto">
+            <i class="bi bi-arrow-counterclockwise me-1"></i> Show All Categories
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- ── Academic Disclaimer ───────────────────────────────── -->
+    <div class="mt-5 p-4 rounded-4 bg-light border text-center">
+        <i class="bi bi-info-circle-fill text-success fs-4 mb-2 d-inline-block"></i>
+        <h6 class="fw-bold">Important Field Advisory</h6>
+        <p class="text-muted small mx-auto mb-0" style="max-width: 720px;">
+            Information in this guide is derived from university agricultural extension literature.
+            Symptom descriptions are general guides only — field conditions, co-infections, and environmental
+            variables can alter presentation. Always cross-verify with a certified agronomist before applying
+            chemical treatments. Chemical control guidance must be adapted to local regulatory mandates and label recommendations.
+        </p>
+    </div>
+
+</div>
+
+<script>
+/* Live client-side search: auto-submit form after brief typing pause */
+(function () {
+    const input = document.getElementById('searchInput');
+    if (!input) return;
+    let timer;
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            document.getElementById('encyclopediaFilterForm').submit();
+        }, 420);
+    });
+})();
+</script>
+{% endblock %}

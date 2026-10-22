@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Account — PlantCare AI{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-sm-11 col-md-8 col-lg-6 col-xl-5">
+                <div class="card card-custom p-4 p-sm-5 bg-white shadow" style="border-radius: 18px; border: 1px solid rgba(46, 125, 50, 0.15);">
+                    
+                    <!-- Card Header -->
+                    <div class="text-center mb-4">
+                        <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle" 
+                             style="width: 52px; height: 52px; background: #e8f5e9; color: #2e7d32; border: 1px solid rgba(46, 125, 50, 0.2);">
+                            <i class="bi bi-person-plus fs-3"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-1">Create Account</h4>
+                        <p class="text-muted small mb-0">Join PlantCare AI to monitor plant foliar health</p>
+                    </div>
+
+                    <!-- Registration Form -->
+                    <form method="POST" action="{{ url_for('register') }}" id="registerForm">
+                        <div class="row g-2 mb-3">
+                            <div class="col-sm-6">
+                                <label for="full_name" class="form-label fw-semibold small text-dark mb-1">Full Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control border-start-0" id="full_name" name="full_name" placeholder="e.g. John Doe" value="{{ request.form.full_name or '' }}" required>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="username" class="form-label fw-semibold small text-dark mb-1">Username</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-at"></i></span>
+                                    <input type="text" class="form-control border-start-0" id="username" name="username" placeholder="e.g. farmer_john" value="{{ request.form.username or '' }}" required minlength="3">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-semibold small text-dark mb-1">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control border-start-0" id="email" name="email" placeholder="e.g. john@farm.org" value="{{ request.form.email or '' }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-4">
+                            <div class="col-sm-6">
+                                <label for="password" class="form-label fw-semibold small text-dark mb-1">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-key"></i></span>
+                                    <input type="password" class="form-control border-start-0" id="password" name="password" placeholder="Min. 6 chars" required minlength="6">
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <label for="confirm_password" class="form-label fw-semibold small text-dark mb-1">Confirm Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-shield-check"></i></span>
+                                    <input type="password" class="form-control border-start-0" id="confirm_password" name="confirm_password" placeholder="Re-enter" required minlength="6">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary-green py-2 fw-semibold">
+                                <i class="bi bi-check2-circle me-1"></i> Register Account
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Footer Link -->
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <p class="small text-muted mb-0">
+                            Already have an account?
+                            <a href="{{ url_for('login') }}" class="text-success fw-bold text-decoration-none">
+                                Sign In &rarr;
+                            </a>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

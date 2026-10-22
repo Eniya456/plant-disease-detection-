@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+
+{% block title %}Plant Diagnostic Scanner — PlantCare AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Plant Diagnostic Scanner</h2>
+            <p class="text-muted mb-0">Upload or drag a clear leaf photograph to classify foliar pathogens using convolutional neural inference.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('disease_info') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-journal-medical me-1"></i> Plant Disease Guide
+            </a>
+        </div>
+    </div>
+
+    <!-- Error Banner -->
+    <div id="uploadErrorMessage" class="alert alert-danger d-none shadow-sm mb-4"></div>
+
+    <div class="row g-4">
+        <!-- Left Column: Upload Form & Samples -->
+        <div class="col-lg-5">
+            <div class="card card-custom p-4 mb-4">
+                <h5 class="fw-bold mb-3">
+                    <i class="bi bi-cloud-arrow-up text-success me-1"></i> Upload Leaf Specimen
+                </h5>
+
+                <form id="detectionForm" method="POST" action="{{ url_for('detect') }}" enctype="multipart/form-data">
+                    <input type="file" id="imageFileInput" name="leaf_image" class="d-none" accept=".jpg,.jpeg,.png,.webp">
+                    <input type="hidden" id="sampleNameInput" name="sample_name" value="">
+
+                    <!-- Dropzone -->
+                    <div id="uploadDropzone" class="upload-dropzone mb-3">
+                        <div id="uploadPrompt">
+                            <div class="upload-icon-circle">
+                                <i class="bi bi-image"></i>
+                            </div>
+                            <h6 class="fw-bold mb-1">Drag &amp; Drop leaf photo here</h6>
+                            <p class="text-muted small mb-2">or <span class="text-success fw-bold text-decoration-underline">browse file</span> from your device</p>
+                            <span class="badge bg-light text-muted border">JPG, JPEG, PNG, WEBP (Max 8MB)</span>
+                        </div>
+
+                        <!-- Image Preview -->
+                        <div id="previewContainer" class="d-none position-relative preview-container">
+                            <img id="previewImage" src="" alt="Selected Leaf Preview">
+                            <button type="button" id="resetUploadBtn" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 rounded-circle" style="width: 32px; height: 32px; padding: 0;" title="Remove image">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-grid">
+                        <button type="submit" id="submitScanBtn" class="btn btn-primary-green py-2 fw-bold" disabled>
+                            <i class="bi bi-lightning-charge me-1"></i> Run Neural Classification
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Pre-loaded Sample Leaves for Instant Demonstration -->
+            <div class="card card-custom p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-lightning-fill text-warning me-1"></i> Quick Test Specimens
+                    </h6>
+                    <small class="text-muted">Click to test without camera</small>
+                </div>
+                <p class="small text-muted mb-3">Select any benchmark specimen to auto-populate the scanner:</p>
+
+                <div class="row g-2">
+                    <div class="col-4">
+                        <div class="sample-leaf-card card p-2 text-center border-0 bg-light rounded-3" data-img-src="{{ url_for('static', filename='img/samples/healthy_leaf.jpg') }}" data-name="healthy_sample.jpg" style="cursor: pointer;">
+                            <img src="{{ url_for('static', filename='img/samples/healthy_leaf.jpg') }}" alt="Healthy" class="rounded sample-thumb mx-auto mb-1">
+                            <span class="badge bg-success-subtle text-success small" style="font-size: 0.68rem;">Healthy</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="sample-leaf-card card p-2 text-center border-0 bg-light rounded-3" data-img-src="{{ url_for('static', filename='img/samples/early_blight_leaf.jpg') }}" data-name="early_blight_sample.jpg" style="cursor: pointer;">
+                            <img src="{{ url_for('static', filename='img/samples/early_blight_leaf.jpg') }}" alt="Early Blight" class="rounded sample-thumb mx-auto mb-1">
+                            <span class="badge bg-warning-subtle text-dark small" style="font-size: 0.68rem;">Early Blight</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="sample-leaf-card card p-2 text-center border-0 bg-light rounded-3" data-img-src="{{ url_for('static', filename='img/samples/late_blight_leaf.jpg') }}" data-name="late_blight_sample.jpg" style="cursor: pointer;">
+                            <img src="{{ url_for('static', filename='img/samples/late_blight_leaf.jpg') }}" alt="Late Blight" class="rounded sample-thumb mx-auto mb-1">
+                            <span class="badge bg-danger-subtle text-danger small" style="font-size: 0.68rem;">Late Blight</span>
+                        </div>
+                    </div>
+                    <div class="col-6 mt-2">
+                        <div class="sample-leaf-card card p-2 text-center border-0 bg-light rounded-3" data-img-src="{{ url_for('static', filename='img/samples/leaf_mold_leaf.jpg') }}" data-name="leaf_mold_sample.jpg" style="cursor: pointer;">
+                            <img src="{{ url_for('static', filename='img/samples/leaf_mold_leaf.jpg') }}" alt="Leaf Mold" class="rounded sample-thumb mx-auto mb-1">
+                            <span class="badge bg-info-subtle text-dark small" style="font-size: 0.68rem;">Leaf Mold</span>
+                        </div>
+                    </div>
+                    <div class="col-6 mt-2">
+                        <div class="sample-leaf-card card p-2 text-center border-0 bg-light rounded-3" data-img-src="{{ url_for('static', filename='img/samples/septoria_leaf.jpg') }}" data-name="septoria_sample.jpg" style="cursor: pointer;">
+                            <img src="{{ url_for('static', filename='img/samples/septoria_leaf.jpg') }}" alt="Septoria" class="rounded sample-thumb mx-auto mb-1">
+                            <span class="badge bg-secondary-subtle text-dark small" style="font-size: 0.68rem;">Septoria Spot</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Prediction Results & Agronomic Guidance -->
+        <div class="col-lg-7">
+            <!-- Loading Indicator Modal / Card -->
+            <div id="loadingOverlay" class="card card-custom p-5 text-center d-none mb-4">
+                <div class="spinner-border text-success mx-auto mb-3" style="width: 3.5rem; height: 3.5rem;" role="status">
+                    <span class="visually-hidden">Analyzing specimen...</span>
+                </div>
+                <h5 class="fw-bold mb-1">Inference Engine In Progress</h5>
+                <p id="loadingStatusText" class="text-muted small mb-0">Preprocessing specimen and executing deep neural matrix...</p>
+            </div>
+
+            {% if result %}
+            <!-- Results Container -->
+            <div class="card card-custom p-4 mb-4 shadow-sm border-top border-4 border-{{ result.disease_info.badge_color }}">
+                <!-- Diagnostic Header -->
+                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+                    <div>
+                        <span class="badge bg-{{ result.disease_info.badge_color }} px-3 py-1 mb-2">
+                            {% if result.is_healthy %}
+                            <i class="bi bi-shield-check me-1"></i> Foliage Healthy
+                            {% else %}
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Pathogen Detected
+                            {% endif %}
+                        </span>
+                        <h3 class="fw-bold mb-0 text-dark">{{ result.predicted_class }}</h3>
+                        <small class="text-muted fst-italic">{{ result.disease_info.scientific_name }} &bull; Severity: {{ result.disease_info.severity }}</small>
+                    </div>
+
+                    <div class="text-end">
+                        <div class="badge bg-light text-dark border p-2">
+                            <span class="d-block small text-muted">Confidence Score</span>
+                            <span class="h4 fw-bold text-success mb-0">{{ result.confidence_pct }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if result.is_uncertain %}
+                <!-- Low-confidence uncertainty warning -->
+                <div class="alert alert-danger py-2 px-3 small d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-exclamation-triangle-fill text-danger fs-5"></i>
+                    <div>
+                        <strong>Low Confidence Result:</strong>
+                        {{ result.uncertainty_note }}
+                        <a href="{{ url_for('disease_info') }}" class="alert-link fw-semibold ms-1">
+                            Browse the Plant Disease Guide →
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Image and Progress Bar -->
+                <div class="row g-3 mb-4 align-items-center">
+                    <div class="col-sm-5 text-center">
+                        <img src="{{ uploaded_image_url }}" alt="Analyzed Leaf" class="img-fluid rounded-3 border shadow-sm" style="max-height: 200px; width: 100%; object-fit: contain; background: #fdfdfd;">
+                    </div>
+                    <div class="col-sm-7">
+                        <div class="p-3 bg-light rounded-3">
+                            <div class="d-flex justify-content-between small fw-bold mb-1">
+                                <span>Classification Confidence</span>
+                                <span class="text-success">{{ result.confidence_pct }}</span>
+                            </div>
+                            <div class="confidence-bar mb-3">
+                                <div class="confidence-fill" style="width: {{ result.confidence_pct }};"></div>
+                            </div>
+                            
+                            <!-- Probability Distribution Mini-list -->
+                            <div class="small fw-semibold text-muted mb-1">Category Probabilities:</div>
+                            {% for cname, cprob in result.probabilities.items() %}
+                            <div class="d-flex justify-content-between align-items-center small py-1 border-bottom">
+                                <span class="text-truncate" style="max-width: 170px;">{{ cname }}</span>
+                                <span class="badge bg-white text-dark border font-monospace">{{ (cprob * 100)|round(1) }}%</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agronomic Knowledge Tabs -->
+                <ul class="nav nav-tabs" id="diseaseDetailTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-semibold" id="symptoms-tab" data-bs-toggle="tab" data-bs-target="#symptoms" type="button" role="tab">
+                            <i class="bi bi-eye me-1"></i> Symptoms
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-semibold" id="prevention-tab" data-bs-toggle="tab" data-bs-target="#prevention" type="button" role="tab">
+                            <i class="bi bi-shield-shaded me-1"></i> Prevention
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-semibold" id="treatment-tab" data-bs-toggle="tab" data-bs-target="#treatment" type="button" role="tab">
+                            <i class="bi bi-bandaid me-1"></i> Management &amp; Treatment
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-3 border border-top-0 rounded-bottom bg-white mb-3" id="diseaseDetailTabsContent">
+                    <!-- Tab 1: Symptoms -->
+                    <div class="tab-pane fade show active" id="symptoms" role="tabpanel">
+                        <p class="text-muted small mb-2">{{ result.disease_info.description }}</p>
+                        <h6 class="fw-bold small text-dark mt-2 mb-2">Key Visual Indicators:</h6>
+                        <ul class="small mb-0 text-muted ps-3">
+                            {% for s in result.disease_info.symptoms %}
+                            <li class="mb-1">{{ s }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- Tab 2: Prevention -->
+                    <div class="tab-pane fade" id="prevention" role="tabpanel">
+                        <h6 class="fw-bold small text-dark mb-2">Agronomic Prevention Best Practices:</h6>
+                        <ul class="small mb-0 text-muted ps-3">
+                            {% for p in result.disease_info.prevention %}
+                            <li class="mb-1">{{ p }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- Tab 3: Treatment -->
+                    <div class="tab-pane fade" id="treatment" role="tabpanel">
+                        <h6 class="fw-bold small text-dark mb-2">Recommended Control Strategies:</h6>
+                        <ul class="small mb-0 text-muted ps-3">
+                            {% for t in result.disease_info.treatments %}
+                            <li class="mb-1">{{ t }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                {% if result.disease_info and result.disease_info.id %}
+                <!-- Link to full disease profile -->
+                <div class="mt-3 text-center">
+                    <a href="{{ url_for('disease_detail', disease_id=result.disease_info.id) }}"
+                       class="btn btn-outline-success btn-sm fw-semibold">
+                        <i class="bi bi-journal-medical me-1"></i> View Full Disease Profile for "{{ result.disease_info.name }}"
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            {% else %}
+            <!-- Initial Empty State -->
+            <div class="card card-custom p-5 text-center bg-white">
+                <div class="rounded-circle bg-light text-muted d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 72px; height: 72px;">
+                    <i class="bi bi-camera display-6 text-success"></i>
+                </div>
+                <h5 class="fw-bold">Ready for Analysis</h5>
+                <p class="text-muted small mx-auto mb-3" style="max-width: 440px;">
+                    Upload a leaf photograph from your device or select one of the quick test specimens on the left to initiate real-time disease diagnosis.
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    <span class="badge bg-light text-muted border"><i class="bi bi-check2"></i> Fast Inference</span>
+                    <span class="badge bg-light text-muted border"><i class="bi bi-check2"></i> 5 Pathologies</span>
+                    <span class="badge bg-light text-muted border"><i class="bi bi-check2"></i> Agronomic Action Plans</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

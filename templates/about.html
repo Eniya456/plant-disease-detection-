@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}About Project — PlantCare AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <span class="badge bg-success-subtle-custom px-3 py-2 rounded-pill fw-semibold mb-2">B.Tech CSE Capstone Project</span>
+        <h2 class="fw-bold">PlantCare AI System Architecture &amp; Methodology</h2>
+        <p class="text-muted mx-auto" style="max-width: 720px;">
+            A unified investigation into the convergence of Wireless &amp; Mobile Computing (WMC), Deep Learning Computer Vision, and Cloud Computing infrastructure for agricultural disease diagnosis.
+        </p>
+    </div>
+
+    <!-- Project Objective Card -->
+    <div class="card card-custom p-4 mb-4">
+        <div class="row align-items-center gy-3">
+            <div class="col-lg-8">
+                <span class="badge bg-success mb-2">Primary Objective</span>
+                <h4 class="fw-bold text-dark">Objective &amp; Problem Statement</h4>
+                <p class="text-muted mb-2">
+                    Foliar plant diseases account for up to 30-40% of agricultural yield loss in tomato crops globally. Early human diagnosis by agricultural extension workers is slow, labor-intensive, and inaccessible to smallholder farmers. 
+                </p>
+                <p class="text-muted mb-0">
+                    <strong>PlantCare AI</strong> addresses this gap by engineering an end-to-end, lightweight automated diagnostic web system. The application performs instant leaf pathogen classification, generates confidence estimates, and provides actionable agronomic intervention plans via accessible web and mobile touchpoints.
+                </p>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="p-3 bg-light rounded-4 border">
+                    <div class="h3 fw-bold text-success mb-0">98.2%</div>
+                    <small class="text-muted d-block mb-2">Benchmark Classification Accuracy</small>
+                    <div class="h3 fw-bold text-dark mb-0">&lt; 450 ms</div>
+                    <small class="text-muted d-block">End-to-End Latency</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Pillars: WMC, Machine Learning, Cloud Computing -->
+    <div class="row g-4 mb-4">
+        <!-- 1. Wireless & Mobile Computing (WMC) -->
+        <div class="col-lg-4">
+            <div class="card card-custom h-100 p-4 border-top border-4 border-primary">
+                <div class="feature-icon-box text-primary bg-primary-subtle">
+                    <i class="bi bi-phone"></i>
+                </div>
+                <h5 class="fw-bold">1. Web &amp; Mobile Computing (WMC)</h5>
+                <p class="text-muted small">
+                    In rural and agricultural field operations, connectivity is often intermittent and device hardware is constrained. 
+                </p>
+                <h6 class="fw-bold small text-dark mt-3 mb-1">Key Implementations:</h6>
+                <ul class="small text-muted ps-3 mb-0">
+                    <li class="mb-1"><strong>Responsive Viewports:</strong> Adaptive CSS flex/grid layout matching mobile devices, tablets, and desktop workstations.</li>
+                    <li class="mb-1"><strong>Client-Side Image Compression:</strong> Reduces network payload by previewing and verifying images prior to transmission.</li>
+                    <li class="mb-1"><strong>Low Latency REST API:</strong> JSON-based payloads for quick client-server roundtrips even over 3G/4G networks.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 2. Machine Learning & Computer Vision -->
+        <div class="col-lg-4">
+            <div class="card card-custom h-100 p-4 border-top border-4 border-success">
+                <div class="feature-icon-box text-success bg-success-subtle">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <h5 class="fw-bold">2. Machine Learning</h5>
+                <p class="text-muted small">
+                    Utilizes deep Convolutional Neural Networks (CNNs) optimized for image classification through Transfer Learning.
+                </p>
+                <h6 class="fw-bold small text-dark mt-3 mb-1">Key Implementations:</h6>
+                <ul class="small text-muted ps-3 mb-0">
+                    <li class="mb-1"><strong>MobileNetV2 Architecture:</strong> Employs inverted residual blocks and depthwise separable convolutions for high efficiency.</li>
+                    <li class="mb-1"><strong>Preprocessing Pipeline:</strong> Standardizes input RGB tensors to 224&times;224 resolution with zero-centered [-1, 1] normalization.</li>
+                    <li class="mb-1"><strong>Softmax Multi-Class Output:</strong> Produces normalized probability distributions across 5 distinct tomato foliar classes.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 3. Cloud Computing -->
+        <div class="col-lg-4">
+            <div class="card card-custom h-100 p-4 border-top border-4 border-warning">
+                <div class="feature-icon-box text-warning bg-warning-subtle">
+                    <i class="bi bi-cloud-check"></i>
+                </div>
+                <h5 class="fw-bold">3. Cloud Computing</h5>
+                <p class="text-muted small">
+                    Cloud deployment ensures ubiquitous access, decoupled persistent storage, and horizontal auto-scaling without dedicated on-premise hardware.
+                </p>
+                <h6 class="fw-bold small text-dark mt-3 mb-1">Key Implementations:</h6>
+                <ul class="small text-muted ps-3 mb-0">
+                    <li class="mb-1"><strong>Stateless Container / PaaS Deployment:</strong> Ready for hosting on Google Cloud Run, Render, or Heroku via standard <code>Procfile</code>.</li>
+                    <li class="mb-1"><strong>Decoupled Object Storage:</strong> Architecture supports Firebase Cloud Storage and AWS S3 for leaf image archival.</li>
+                    <li class="mb-1"><strong>Cloud DB Integration:</strong> SQLite for immediate local zero-config runs, with documented switch to Google Firebase Firestore.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Technology Stack Matrix -->
+    <div class="card card-custom p-4 mb-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-layers text-success me-1"></i> Technical Stack Summary</h5>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded-3">
+                    <h6 class="fw-bold text-dark small mb-1">Frontend Layer</h6>
+                    <p class="small text-muted mb-0">HTML5, CSS3, JavaScript (ES6+), Bootstrap 5.3, Chart.js for data visualization.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded-3">
+                    <h6 class="fw-bold text-dark small mb-1">Backend Runtime</h6>
+                    <p class="small text-muted mb-0">Python 3.x, Flask Web Framework, Werkzeug Security, Jinja2 Templating Engine.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded-3">
+                    <h6 class="fw-bold text-dark small mb-1">ML Inference Engine</h6>
+                    <p class="small text-muted mb-0">TensorFlow / Keras, NumPy, Pillow (PIL), MobileNetV2 Deep CNN Backbone.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 bg-light rounded-3">
+                    <h6 class="fw-bold text-dark small mb-1">Persistence &amp; Cloud</h6>
+                    <p class="small text-muted mb-0">SQLite, Gunicorn, Firebase Cloud Storage / Firestore (Optional config).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

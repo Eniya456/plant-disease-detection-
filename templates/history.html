@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}Prediction History — PlantCare AI{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h2 class="fw-bold mb-1">Diagnostic Scan History</h2>
+            <p class="text-muted mb-0">Chronological repository of all foliar disease classifications recorded by your account.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('detect') }}" class="btn btn-primary-green btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-camera-fill"></i>
+                <span>New Scan</span>
+            </a>
+            {% if predictions %}
+            <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#clearHistoryModal">
+                <i class="bi bi-trash3"></i>
+                <span>Clear All</span>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Card -->
+    <div class="card card-custom p-4">
+        <!-- Search and Filter Bar -->
+        <div class="row g-3 mb-3">
+            <div class="col-md-6 col-lg-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="historySearchInput" class="form-control border-start-0" placeholder="Filter by pathogen, filename, or status...">
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-8 text-md-end text-muted small d-flex align-items-center justify-content-md-end">
+                <span>Showing <strong>{{ predictions|length }}</strong> total diagnostic records</span>
+            </div>
+        </div>
+
+        {% if predictions %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col" style="width: 70px;">Specimen</th>
+                        <th scope="col">Diagnosis</th>
+                        <th scope="col">Pathology Status</th>
+                        <th scope="col">Confidence</th>
+                        <th scope="col">Inference Type</th>
+                        <th scope="col">Recorded At</th>
+                        <th scope="col" class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    {% for p in predictions %}
+                    <tr>
+                        <td>
+                            <img src="{{ url_for('uploaded_file', filename=p.filename) }}" alt="Specimen" class="rounded-2 border" style="width: 48px; height: 48px; object-fit: cover;" onerror="this.src='{{ url_for('static', filename='img/samples/healthy_leaf.jpg') }}'">
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">{{ p.predicted_class }}</div>
+                            <small class="text-muted font-monospace">{{ p.filename }}</small>
+                        </td>
+                        <td>
+                            {% if p.is_healthy %}
+                            <span class="badge badge-healthy"><i class="bi bi-check-circle me-1"></i>Healthy</span>
+                            {% else %}
+                            <span class="badge badge-diseased"><i class="bi bi-exclamation-triangle me-1"></i>Diseased</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2" style="max-width: 140px;">
+                                <div class="progress flex-grow-1" style="height: 6px;">
+                                    <div class="progress-bar {% if p.confidence > 0.85 %}bg-success{% elif p.confidence > 0.65 %}bg-warning{% else %}bg-danger{% endif %}" style="width: {{ (p.confidence * 100)|round }}%;"></div>
+                                </div>
+                                <span class="small fw-bold">{{ (p.confidence * 100)|round(1) }}%</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if p.is_demo %}
+                            <span class="badge bg-warning-subtle text-dark border"><i class="bi bi-laptop me-1"></i>Demo Mode</span>
+                            {% else %}
+                            <span class="badge bg-success-subtle text-success border"><i class="bi bi-cpu me-1"></i>Neural Net</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ p.created_at }}</td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('detect', view_id=p.id) }}" class="btn btn-outline-secondary" title="View Full Report">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('delete_history_item', item_id=p.id) }}" style="display:inline;" onsubmit="return confirm('Delete this scan entry?');">
+                                    <button type="submit" class="btn btn-outline-danger" title="Delete Entry">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 bg-light rounded-3">
+            <i class="bi bi-clock-history text-muted display-4 mb-3 d-block"></i>
+            <h5 class="fw-bold">No History Available</h5>
+            <p class="text-muted small mb-3">Your diagnostic scan history is currently empty.</p>
+            <a href="{{ url_for('detect') }}" class="btn btn-primary-green px-4">
+                <i class="bi bi-camera me-1"></i> Run First Scan Now
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Clear History Confirmation Modal -->
+<div class="modal fade" id="clearHistoryModal" tabindex="-1" aria-labelledby="clearHistoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger" id="clearHistoryModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Clear Prediction History
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-0">
+                    Are you sure you want to permanently clear your entire scan history? This action will remove all recorded diagnoses from your account and cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('clear_history') }}">
+                    <button type="submit" class="btn btn-danger">Yes, Clear All Records</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
